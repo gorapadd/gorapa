@@ -1,0 +1,689 @@
+https://labs.msaez.io/#/courses/cna-full/be513ff0-e2d5-11ec-b71d-f90e603c5333
+https://labs.msaez.io/#/courses
+https://github.com/msa-school
+https://github.com/msa-school/msaez-labs
+
+가입 github 
+     gorapadd@naver.com 
+      keb213185###
+
+## 비동기 입장  ,  LGU+ 1억5천.
+1.
+2. Kafca 대용 DB 사용가능함.
+시스템, 부정적 입장..
+
+##
+mvn string-boot;run
+
+kafca 시작 - READ.ME 참고 
+
+
+
+
+##질의 내용
+1.  
+
+http localhost:8081/orders
+
+
+
+
+## 
+1. Indexed EVENT ID 규칙 변경 
+   : JPA 설정에서 가능
+2. fileID 인덱스처리 (
+   : JPA 설정에서 가능
+3. kafca 송수신데이타 (이벤트 겠지?)
+   : EVENT 에 있는 멤버변수가 kafca 송수신대상임.	
+4. 이력
+   - policy 요소로 각 EVENT에서 받아와서 처리해야함. 
+   CF. CQRS 는 최종 마이데이타 성격만 처리함. 
+
+5. 배치에 대한 표준여부??
+   : 마이크로서비스가 배치로 Cron 과 연동될수 있음 (서버없이도)
+
+
+
+## 강점
+1. 성능 , 확장성  <--> 트랜젝션 처리, 신뢰성 
+2. 비동기 방식
+3. 모델링 (BIZDEVOPS)
+4. 배포 자주 (원복) 쉬워야함.
+
+## 업무질의
+1. API 동기방식 
+2. 기관/서비스/API 정보 , 
+3. 데이타변환기본 설명
+4. 
+
+## 추천책
+1.JPA : https://arahansa.github.io/docs_spring/jpa.html
+
+## 번외질문
+1. 대외전문처리
+2. (박T) 동시적용 
+  : 기존기능도 같이 처리하도록 설계해야함. (카나리 식)
+  : 카나리 --> 2개버전공전   <---> 블루그린 (배포전략) , 무정지 되면서 한번에 적용함. (어플리케이션에서 처리해야함.)
+## 추후확인
+1. AUth -> keycloak 제품 
+
+## 실습
+http POST localhost:8081/orders productId=1 productName="TV" qty=3 address="seoul"
+ http GET localhost:8081/orders
+http PATCH localhost:8081/orders/1 qty=10
+
+fuser -k 8080/tcp  #서비스 종료
+mvn spring-boot:run #서비스 기동
+
+http localhost:8081/orders productId=1 productName="TV" qty=3 <-- order   8081
+http localhost:8081/orders
+
+http localhost:8080/orders productId=1 productName="PC" qty=1  <-- gateway   8080   <--> delivery 8082	
+http localhost:8080/orders
+
+
+## 
+mvn spring-boot:run
+
+8081 < order
+8088 < gateway	  
+
+8090 < oauth
+
+
+http --form POST localhost:8088/oauth/token "Authorization: Basic dWVuZ2luZS1jbGllbnQ6dWVuZ2luZS1zZWNyZXQ=" grant_type=password username=1@uengine.org password=1
+http localhost:8088/orders "Authorization: Bearer $access_token"
+
+8088 : monolith
+siege -c2 -t10S  -v --content-type "application/json" 'http://localhost:8088/orders POST {"productId":2, "quantity":1}'
+
+8088 : monolith
+8082 : reqres_delivery
+
+
+##
+파티션 consumer 늘릴수 있다..
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server http://localhost:9092 --topic topic_example --create --partitions 1 --replication-factor 1
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server http://localhost:9092 --list    
+
+/usr/local/kafka/bin/kafka-console-producer.sh --broker-list http://localhost:9092 --topic topic_example
+/usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server http://localhost:9092 --topic topic_example --from-beginning
+
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --list
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group <group_id> --topic topic_example --reset-offsets --to-earliest --execute
+
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --list
+
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group console-consumer-30739 --topic topic_example --reset-offsets --to-earliest --execute
+
+포트 9092 
+
+##
+
+http localhost:8081/orders productId=1 productName="TV" qty=3
+
+## 토픽생성
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server http://localhost:9092 --topic topic_example --create --partitions 1 --replication-factor 1
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server http://localhost:9092 --list    
+
+## producer 생성 
+/usr/local/kafka/bin/kafka-console-producer.sh --broker-list http://localhost:9092 --topic topic_example
+
+## consumer 생성 
+/usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server http://localhost:9092 --topic topic_example --from-beginning
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --list
+
+## consumer offset 확인 
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group <group_id> --describe
+## consumer offset 재설정 
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group <group_id> --topic topic_example --reset-offsets --to-earliest --execute
+
+#주문한다
+http localhost:8081/orders productId=1 productName="TV" qty=3
+
+## consumer 이벤트확인
+/usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic shopmall --from-beginning
+
+## 토픽리스트 
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --list
+## consumer offset 확인
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group delivery  --describe
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group order --describe
+
+## consumer offset 재설정
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group delivery --topic shopmall --reset-offsets --to-earliest --execute
+
+## producer 내용 입력
+/usr/local/kafka/bin/kafka-console-producer.sh --broker-list http://localhost:9092 --topic shopmall 
+## 
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group delivery --topic shopmall --reset-offsets --to-earliest --execute
+
+
+##
+
+http localhost:8081/orders productId=1 productName="TV" qty=3
+http DELETE localhost:8081/orders/1
+
+
+##
+http :8081/orders productId="1"
+$kafka_home/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group product --describe
+
+$kafka_home/bin/kafka-topics.sh --bootstrap-server http://localhost:9092  --list
+
+
+
+http POST :8081/orders message=5th-Order
+
+$kafka_home/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group product --describe
+$kafka_home/bin/kafka-console-consumer.sh --bootstrap-server http://localhost:9092 --topic dlq-kafkatest --from-beginning
+
+$kafka_home/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group product --describe
+$kafka_home/bin/kafka-console-consumer.sh --bootstrap-server http://localhost:9092 --topic dlq-kafkatest --from-beginning
+
+
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group product --describe
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group product --topic dlq-kafkatest --reset-offsets --to-earliest --execute
+
+
+## Kafka Partition Scale Out 
+
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --topic kafkatest --describe
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group product
+
+## 서비스 재기동 또는 2~3분뒤 자동..
+$kafka_home/bin/kafka-topics.sh --zookeeper localhost:2181 --alter --topic kafkatest -partitions 2
+
+/usr/local/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --topic kafkatest --describe
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group product
+
+
+## kafka Connect 
+1. git clone https://github.com/acmexii/kafka-connect.git
+2. cd kafka-connect
+
+
+## h2 설치위치 /home/project/advanced-connect/kafka-connect/bin# vi h2.sh
+cd bin
+chmod 755 h2.sh
+./h2.sh -webPort 8087 -tcpPort 9099
+
+
+cp /home/project/advanced-connect/kafka-connect/confluentinc-kafka-connect-jdbc-10.2.5.zip ./
+unzip confluentinc-kafka-connect-jdbc-10.2.5.zip
+
+
+curl -i -X POST -H "Accept:application/json" \
+    -H  "Content-Type:application/json" http://localhost:8083/connectors/ \
+    -d '{
+    "name": "h2-source-connect",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+        "connection.url": "jdbc:h2:tcp://localhost:9099/./test",
+        "connection.user":"sa",
+        "connection.password":"passwd",
+        "mode":"incrementing",
+        "incrementing.column.name" : "ID",
+        "table.whitelist" : "ORDER_TABLE",
+        "topic.prefix" : "CONNECT_",
+        "tasks.max" : "1"
+    }
+}'
+
+
+## kafka cnnector 실행 (10초간격..)
+/usr/local/kafka# ./bin/connect-distributed.sh config/connect-distributed.properties
+
+## consumer 이벤트확인
+/usr/local/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic CONNECT_ORDER_TABLE --from-beginning
+
+## 토픽리스트 
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --list
+## consumer offset 확인
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group delivery  --describe
+/usr/local/kafka/bin/kafka-consumer-groups.sh --bootstrap-server http://localhost:9092 --group order --describe
+
+
+curl -i -X POST -H "Accept:application/json" \
+    -H  "Content-Type:application/json" http://localhost:8083/connectors/ \
+    -d '{
+    "name": "h2-sink-connect",
+    "config": {
+        "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+        "connection.url": "jdbc:h2:tcp://localhost:9099/./test",
+        "connection.user":"sa",
+        "connection.password":"passwd",
+        "auto.create":"true",       
+        "auto.evolve":"true",       
+        "delete.enabled":"false",
+        "tasks.max":"1",
+        "topics":"CONNECT_ORDER_TABLE"
+    }
+}'
+
+
+http POST :8081/orders message="3rd OrderPlaced."
+http GET :8081/syncOrders
+
+
+## 도커
+hub.docker.com -> gorapadd@naver.com / keb213185###
+docker login -> gorapadd / keb213185###   <= 이메일아님.
+
+
+ docker login
+ docker build -t [dockerhub ID]/order:[오늘날짜] .     
+ docker images
+ docker push [dockerhub ID]/order:[오늘날짜]  
+ docker run [dockerhub ID]/order:[오늘날짜]  
+
+
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# docket build -t gorapadd/order:2022061401 .
+bash: docket: command not found
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# docker build -t gorapadd/order:2022061401 .
+Sending build context to Docker daemon 59.77 MB
+Step 1/4 : FROM openjdk:8u212-jdk-alpine
+8u212-jdk-alpine: Pulling from library/openjdk
+e7c96db7181b: Already exists 
+f910a506b6cb: Already exists 
+c2274a1a0e27: Already exists 
+Digest: sha256:94792824df2df33402f201713f932b58cb9de94a0cd524164a0f2283343547b3
+Status: Downloaded newer image for openjdk:8u212-jdk-alpine
+ ---> a3562aa0b991
+Step 2/4 : COPY target/*SNAPSHOT.jar app.jar
+ ---> 6661aebde4cd
+Step 3/4 : EXPOSE 8080
+ ---> Running in 75ec38d5cde8
+Removing intermediate container 75ec38d5cde8
+ ---> a2de62e34ee2
+Step 4/4 : ENTRYPOINT ["java","-Xmx400M","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar","--spring.profiles.active=docker"]
+ ---> Running in d49d3d06225b
+Removing intermediate container d49d3d06225b
+ ---> 83818081755e
+Successfully built 83818081755e
+Successfully tagged gorapadd/order:2022061401
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+gorapadd/order      2022061401          83818081755e        35 seconds ago      165 MB
+jinyoung/order      2022061401          1d349b76aa1e        23 minutes ago      165 MB
+openjdk             8u212-jdk-alpine    a3562aa0b991        3 years ago         105 MB
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# docker push gorapadd/order
+The push refers to repository [docker.io/gorapadd/order]
+a7b161d3128d: Pushed 
+ceaf9e1ebef5: Mounted from library/openjdk 
+9b9b7f3d56a0: Mounted from library/openjdk 
+f1b5933fe4b5: Mounted from library/openjdk 
+2022061401: digest: sha256:b8a817f82dc563feab161b92b02c1ecde35feb9451f988b9795931c5d8158608 size: 1159
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# 
+
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# docker run gorapadd/order:2022061401
+2022-06-14 05:41:56.909  INFO 1 --- [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration' of type [org.springframework.cloud.autoconfigure.ConfigurationPropertiesRebinderAutoConfiguration$$EnhancerBySpringCGLIB$$aa284ef7] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying)
+
+
+
+kubectl apply -f kubernetes/deployment.yml
+
+kubectl apply -f kubernetes/service.yaml
+
+
+root@labs--311032102:/home/project/ops-deploy-my-app/shopmall/order# kubectl get svc
+NAME    TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+order   ClusterIP   10.56.8.242   <none>        8080/TCP   3m13s
+
+게이트웨이 주소 확인
+
+kubectl get svc
+Pod 생성 확인
+
+kubectl get po
+주문 확인
+
+order 서비스 배포
+kubectl create deploy order --image=gorapadd/order:2022061401
+kubectl expose deploy order --port=8080
+
+kubectl port-forward svc/order 8080:8080 
+
+kubectl delete deploy --all
+kubectl delete svc --all
+
+delivery 서비스 배포
+kubectl create deploy delivery --image=[dockerhub ID]/delivery:latest
+kubectl expose deploy delivery --port=8080
+
+gateway 서비스 배포
+kubectl create deploy gateway --image=[dockerhub ID]/gateway:latest
+kubectl expose deploy gateway --type=LoadBalancer --port=8080
+
+
+kubectl delete po --all
+# 한후, 서비스 접속 -> 좀있다가 회복
+kubectl get po   # po가 다시 생성되었음을 확인
+
+kubectl scale deploy order --replicas=3
+kubectl get po 
+# order를 위한 pod가 3개가 생성됨을 확인
+
+##
+https://gitpod.io/#https://github.com/msa-school/ddd-petstore-level9-bounded-multi-model
+
+##
+https://gitpod.io/#https://github.com/msa-school/vuejs-frontend-base
+
+  App running at:
+  - Local:   http://localhost:8080/ 
+  - Network: http://10.0.5.2:8080/
+
+##
+http://www.msaschool.io/operation/introduction/
+
+##
+펫스토어
+https://github.com/msa-school/ddd-petstore-level9-bounded-multi-model
+gitpod: https://gitpod.io/#https://github.com/msa-school/ddd-petstore-level9-bounded-multi-model
+
+## MSAEasy
+http://uengine.org/eventstorming/#/
+
+
+
+
+##
+# ddd-petstore
+
+## GitPod 접속
+https://gitpod.io/#https://github.com/msa-school/ddd-petstore-level9-bounded-multi-model
+
+- 접속 후 "Terminal > Terminal열기"
+
+## 유틸리티 설치(httpie)
+
+- httpie (curl / POSTMAN 대용)
+```
+pip install httpie
+```
+
+## Kafka 의 접속
+### Docker Compose 이용 (도커 있을 때 강추)
+- Kafka 의 실행 (Docker Compose)
+```
+cd kafka
+docker-compose up -d     # docker-compose 가 모든 kafka 관련 리소스를 받고 실행할 때까지 기다림
+```
+- Kafka 정상 실행 확인
+```
+$ docker-compose logs kafka | grep -i started    
+
+kafka-kafka-1  | [2022-04-21 22:07:03,262] INFO [KafkaServer id=1] started (kafka.server.KafkaServer)
+```
+- Kafka consumer 접속
+```
+docker-compose exec -it kafka /bin/bash   # kafka docker container 내부 shell 로 진입
+
+[appuser@e23fbf89f899 bin]$ cd /bin
+[appuser@e23fbf89f899 bin]$ ./kafka-console-consumer --bootstrap-server localhost:9092 --topic petstore
+```
+
+### 로컬 설치 (비추)
+- Kafka Download
+```
+wget https://dlcdn.apache.org/kafka/3.1.0/kafka_2.13-3.1.0.tgz
+tar -xf kafka_2.13-3.1.0.tgz
+```
+
+- Run Kafka
+```
+cd kafka_2.13-3.1.0/
+bin/zookeeper-server-start.sh config/zookeeper.properties &
+bin/kafka-server-start.sh config/server.properties &
+```
+
+- Kafka Event 컨슈밍하기 (별도 터미널)
+```
+cd kafka_2.13-3.1.0/
+bin/kafka-console-consumer.sh --bootstrap-server 127.0.0.1:9092 --topic petstore
+```
+
+## Pet Service 기동
+
+- 새로운 터미널을 열어 Pet 서비스를 기동한다. (8081)
+```
+cd pet-domain
+mvn install
+mvn spring-boot:run
+```
+- 새로운 터미널을 열어 pet을 한 마리 등록해 줍니다.
+
+```javasciprt
+http :8081/cats name="몽이" energy=1
+```
+
+- Pet 에 먹이를 한번 줘봅니다.
+```javascript
+http PUT "http://localhost:8081/cats/1/feed"
+```
+
+- Pet 의 에너지가 상승함을 확인합니다.
+```javascript
+http "http://localhost:8081/cats/1"
+```
+
+- Pet 의 털도 한번 가꿔봅니다:
+```javascript
+http PUT "http://localhost:8081/cats/1/groom"
+```
+
+
+- Pet 의 외모지수가 상승함을 확인합니다.
+```javascript
+http "http://localhost:8081/cats/1"
+```
+<br>
+
+## Store Service 기동
+
+- 또 다른 터미널을 열어서 Store 서비스를 기동합니다. (8083)
+```
+cd store-domain
+mvn spring-boot:run
+```
+- 유저를 한 명 등록해 줍니다.
+
+```javascript
+http localhost:8083/customers id="park@naver.com" address[zipcode]="123" address[detail]="용인"
+```
+![8083 유저 등록](https://user-images.githubusercontent.com/59447401/147196678-eab14a04-e885-4922-8b9c-9d8f3fdb6a9c.png)
+
+<br>
+
+## 입양하기
+- items 에 Pet 도메인에서 등록된 애완동물들이 동기화 되어 있는 것을 확인한다:
+```javascript
+http :8083/items
+```
+- 자동으로 등록이 안되었다면 수동으로 등록을 해줘야 한다 (두마리를 등록해본다):
+```javascript
+http "http://localhost:8083/items" apperance=1 health=2 price[currency]="KR_WON" price[amount]="100000"
+http "http://localhost:8083/items" apperance=2 health=1 price[currency]="EURO" price[amount]=200
+```
+
+- 가격을 매겨준다
+```
+http PATCH "http://localhost:8083/items/1" price[amount]=1000 price[currrency]=WON
+```
+
+- 아까 등록한 두마리를 입양해본다. 이때는 하나의 Aggregate 이므로 한번에 등록이 되어야 한다. 
+```javascript
+http :8083/cartItems customer="http://localhost:8083/customers/park@naver.com" items[]="http://localhost:8083/items/1" items[]="http://localhost:8083/items/2"
+```
+![8083 입양](https://user-images.githubusercontent.com/59447401/147196784-6281b8a0-822a-47cb-9ef1-7632b2d509be.png)
+
+
+
+
+
+# Kafka Event 송출/수신과 관련된 파일들
+## 설정관련
+- pom.xml
+- Application.java 의 @EnableBinding(KafkaProcessor.java)
+- kafka/KafkaProcessor.java
+- resources/application.yaml
+## 구현관련
+- AbstractEvent.java
+- PolicyHandler.java
+- domain event 들: PetReserved.java / PetUpdated.java
+
+
+
+# Gateway 를 통한 진입점 통일(8080)
+
+```
+cd gateway
+mvn spring-boot:run
+```
+서비스가 기동된 후, gateway 로 단일화된 주소로 접근이 가능함을 확인합니다:
+
+```
+http localhost:8088/pets         # service url of pet domain
+http localhost:8088/cartItems    # service url of store domain
+```
+
+# Micro Frontends 를 통한 접근
+## pet domain 의 front-end 실행
+- 코드 다운로드
+```
+git clone https://github.com/msa-school/ddd-petstore-frontend-pet-domain
+```
+- Port 설정변경 (package.json)
+```
+    "serve": "vue-cli-service serve --port 8084",
+```
+- 실행
+```
+cd ddd-petstore-frontend-pet-domain/
+npm i
+npm run serve
+
+
+# 성공시
+ DONE  Compiled successfully in 12131ms                                                                                  11:19:42 PM
+
+
+  App running at:
+  - Local:   http://localhost:8084/ 
+  - Network: http://10.0.5.2:8084/
+
+  Note that the development build is not optimized.
+  To create a production build, run npm run build.
+
+
+```
+- 브라우저에서 접속 확인시 "Invalid Host Header" 인 경우 (Gitpod 인 경우)
+
+vue.config.js 설정 변경:
+```
+module.exports = {
+  transpileDependencies: [
+    'vuetify'
+  ],
+  devServer: {
+    allowedHosts: [
+      '8080-msaschool-dddpetstorele-unxdrc0wqhx.ws-us41.gitpod.io',  // 접속 URL (gitpod 팝업 url, http:// 부분, 끝의 / 부분 제외)
+    ],
+  },
+}
+```
+- Gateway 설정 (gateway/../application.yml)
+```
+        - id: pet-front
+          uri: http://localhost:8084
+          predicates:
+            - Path=/**
+```
+
+## store domain 의 front-end 실행
+```
+git clone https://github.com/msa-school/ddd-petstore-frontend-store-domain
+npm i
+npm run serve
+```
+- Gateway 설정 (gateway/../application.yml)
+```
+        - id: store-front
+          uri: http://localhost:8085
+          predicates:
+            - Path=/shop/**, /shop/js/
+        - id: pet-front
+          uri: http://localhost:8084
+          predicates:
+            - Path=/**
+```
+
+# Kubernetes 에 배포
+
+# Docker 배포 관련
+
+각 프로젝트 내에는 Dockerfile 이 포함되어있습니다. 이것을 빌드하기 위해서는 우선 maven 빌드로 jar 를 만들어준 후, jar 를 Dockerfile 로 다시 빌드해줍니다:
+
+```
+cd pet-store
+mvn package -B
+docker build -t pet:v1 .
+docker run pet:v1
+```
+
+
+## kafka 설치하기
+
+### Helm 
+
+Helm(패키지 인스톨러) 설치
+- Helm 3.x 설치(권장)
+```bash
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+chmod 700 get_helm.sh
+./get_helm.sh
+```
+
+### Kafka 를 helm 으로 설치
+```bash
+helm repo update
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm install my-kafka bitnami/kafka
+```
+
+
+## JPA한글문서 : 구글..
+
+## 로컬작업위치
+## 로컬작업위치  : 
+
+0. visual Studio Code (VS Code)
+1. kafka : C:\kafka_2.12-3.1.1\bin\windows
+
+zookeeper-server-start.bat ../../config/zookeeper.properties
+kafka-server-start.bat ../../config/server.properties
+
+kafka-topics
+
+2.h2
+C:\h2
+
+저장한설명 : Generic H2 (Embedded)
+설정이름 : 상동
+
+드라이버클래스 : org.h2.Driver
+JDBC URL : jdbc:h2:~/test
+사용자명 : sa
+비밀번호 : 없음 
+
+3. maven 설치
+
+4. httpie 설치 
+
+5,6 도커 및 클라우드 
+
+## workflowy.com/s/c10811dfdb67/UhOZB2crKOhNPUYp
+
+## 구글  vuetify
+https://vuetifyjs.com/en/
