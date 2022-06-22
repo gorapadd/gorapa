@@ -1,0 +1,30 @@
+
+==== 계좌등록
+http :8081/requests/ acctNo="620171113616" tranType="register" cusTelNo="01036221122" cusName="TEST1"
+http :8081/requests/ acctNo="920122444444" tranType="register" cusTelNo="24534523423" cusName="TEST2"
+http :8081/requests/ acctNo="348947835348" tranType="register" cusTelNo="46356563545" cusName="TEST3"
+
+==== 이체 
+http :8081/requests/
+http :8081/requests/  acctNo="620171113616" tranId="1" tranType="transfer" tranAmt=100 cusTelNo="01036221122" cusName="TEST1" recvAcctNo="16238383"
+http :8081/requests/  acctNo="920122444444" tranId="2" tranType="transfer" tranAmt=200 cusTelNo="24534523423" cusName="TEST2" recvAcctNo="34252452"
+http :8081/requests/  acctNo="348947835348" tranId="3" tranType="transfer" tranAmt=300 cusTelNo="46356563545" cusName="TEST3" recvAcctNo="66657666"
+
+== 이체취소
+http :8081/requests/  acctNo="620171113616" tranId="1" tranType="cancel" 
+http :8081/requests/  acctNo="920122444444" tranId="2" tranType="cancel" 
+http :8081/requests/  acctNo="348947835348" tranId="3" tranType="cancel" 
+
+
+--http :8081/requests/   tranId="3" tranType="01" tranAmt=300 cusTelNo="46356563545" 
+
+## acctInfo (8083)조회 및 입력
+http :8081/requests
+http :8083/acctInfos    
+http :8084/transfers
+http :8088/notifications
+
+http :8083/acctInfos/1  <-- 데이타 확인후 
+http :8083/acctInfos acctNo="620171113616" tranType="register" cusTelNo="01036221122" cusName="TEST1"
+http :8083/acctInfos acctNo="920122444444" tranType="register" cusTelNo="24534523423" cusName="TEST2"
+http :8083/acctInfos acctNo="348947835348" tranType="register" cusTelNo="46356563545" cusName="TEST3"
